@@ -347,3 +347,16 @@ export async function editRevenue(id: string, updates: any) {
   revalidatePath("/");
   return { success: true };
 }
+
+export async function saveMarketingMetrics(data: any[]) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("marketing_metrics").insert(data);
+  
+  if (error) {
+    console.error("Error saving marketing metrics:", error);
+    return { error: "Erro ao guardar as métricas de marketing." };
+  }
+
+  revalidatePath("/");
+  return { success: true };
+}
