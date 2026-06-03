@@ -75,10 +75,12 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
             </Pie>
             <Tooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}} />
             <Legend 
-              payload={legendPayload as any}
+              // @ts-expect-error recharts typings omit payload but it works
+              payload={legendPayload}
               verticalAlign="bottom" 
               height={24} 
               wrapperStyle={{ paddingTop: '20px' }} 
+              iconType="circle"
             />
           </PieChart>
         </ResponsiveContainer>
