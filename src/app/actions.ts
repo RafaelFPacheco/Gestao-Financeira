@@ -184,10 +184,7 @@ export async function getDashboardData() {
       revenue: 0,
       date: e.created_at
     })),
-    ...rawRevs.filter((r: any) => {
-      const offer = r.offer ? String(r.offer).toLowerCase() : "";
-      return offer.includes("anúncio") || offer.includes("anuncio") || offer.includes("ads");
-    }).map((r: any) => ({
+    ...rawRevs.map((r: any) => ({
       id: r.id,
       source: "Manual",
       spend: 0,
