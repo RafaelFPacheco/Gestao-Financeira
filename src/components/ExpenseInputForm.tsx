@@ -96,7 +96,7 @@ export default function ExpenseInputForm() {
             >
               <option value="">Selecione...</option>
               <option value="Software">Software / Serviços Cloud</option>
-              <option value="Marketing">Marketing e Publicidade</option>
+              <option value="Anúncios">Anúncios</option>
               <option value="Equipamentos">Equipamentos e Material</option>
               <option value="Escritório">Despesas de Escritório</option>
               <option value="Viagens">Viagens e Deslocações</option>

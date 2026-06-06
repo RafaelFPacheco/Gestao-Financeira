@@ -146,7 +146,7 @@ function isInTimeRange(date: Date, type: 'day' | 'week' | 'month' | 'year', now:
 
 const catColors: Record<string, string> = {
   "Software": "#8b5cf6",
-  "Marketing": "#f43f5e",
+  "Anúncios": "#f43f5e",
   "Equipamentos": "#eab308",
   "Escritório": "#06b6d4",
   "Viagens": "#f97316",
@@ -175,6 +175,27 @@ export async function getDashboardData() {
   const marketingData = marketingRes?.data || [];
   const supplies = suppliesRes?.data || [];
   
+  const combinedMarketingData = [
+    ...marketingData,
+    ...rawExps.filter((e: any) => e.category === "Anúncios").map((e: any) => ({
+      id: e.id,
+      source: "Manual",
+      spend: e.value,
+      revenue: 0,
+      date: e.created_at
+    })),
+    ...rawRevs.filter((r: any) => {
+      const offer = r.offer ? String(r.offer).toLowerCase() : "";
+      return offer.includes("anúncio") || offer.includes("anuncio") || offer.includes("ads");
+    }).map((r: any) => ({
+      id: r.id,
+      source: "Manual",
+      spend: 0,
+      revenue: r.value,
+      date: r.created_at
+    }))
+  ];
+
   const goals = goalsRes.data || {
     daily_revenue: 0,
     weekly_revenue: 0,
@@ -188,11 +209,11 @@ export async function getDashboardData() {
 
   const exps = [
     ...rawExps,
-    ...marketingData.map(m => ({
+    ...marketingData.map((m: any) => ({
       id: `mkt-${m.id || Math.random()}`,
       description: `Gasto Ads: ${m.source}`,
       value: m.spend,
-      category: "Ads",
+      category: "Anúncios",
       transaction_type: "Despesa da Empresa",
       created_at: m.date
     }))
@@ -227,7 +248,7 @@ export async function getDashboardData() {
     recentExpenses: exps.slice(0, 50),
     recentRevenues: revs.slice(0, 50),
     supplies,
-    marketingData
+    marketingData: combinedMarketingData
   };
 
   // Process Revenues

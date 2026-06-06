@@ -281,7 +281,7 @@ export default function ExpenseLogTable({ expenses, revenues }: ExpenseLogTableP
                             className="bg-background border border-border rounded px-2 py-1 w-full text-xs focus:outline-none"
                           >
                             <option value="Software">Software</option>
-                            <option value="Marketing">Marketing</option>
+                            <option value="Anúncios">Anúncios</option>
                             <option value="Equipamentos">Equipamentos</option>
                             <option value="Escritório">Escritório</option>
                             <option value="Viagens">Viagens</option>
