@@ -43,7 +43,7 @@ function isInTimeRange(dateStr: string, type: TimeFilter, now: Date) {
 export default function AdsSection({ data }: AdsSectionProps) {
   const [filter, setFilter] = useState<TimeFilter>('all');
 
-  const { totalSpend, totalRevenue, roas } = useMemo(() => {
+  const { totalSpend, totalRevenue, totalProfit, roas } = useMemo(() => {
     const now = new Date();
     let spend = 0;
     let rev = 0;
@@ -56,8 +56,9 @@ export default function AdsSection({ data }: AdsSectionProps) {
     });
 
     const roasCalc = spend > 0 ? (rev / spend) : 0;
+    const profit = rev - spend;
 
-    return { totalSpend: spend, totalRevenue: rev, roas: roasCalc };
+    return { totalSpend: spend, totalRevenue: rev, totalProfit: profit, roas: roasCalc };
   }, [data, filter]);
 
   return (
@@ -97,7 +98,7 @@ export default function AdsSection({ data }: AdsSectionProps) {
         <div className="bg-background/30 rounded-xl p-5 border border-border flex flex-col">
           <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Lucro de Ads</span>
           <span className="text-3xl font-bold text-emerald-500">
-            {formatCurrency(totalRevenue)}
+            {formatCurrency(totalProfit)}
           </span>
         </div>
 
