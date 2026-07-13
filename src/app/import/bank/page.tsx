@@ -122,8 +122,27 @@ export default function BankImportPage() {
         try {
           const data = new Uint8Array(e.target?.result as ArrayBuffer);
           const workbook = XLSX.read(data, { type: 'array' });
-          const json: any[] = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
-          processBankData(json);
+          const rawRows: any[][] = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1, defval: "" });
+          
+          let headerRowIndex = 0;
+          for (let i = 0; i < Math.min(rawRows.length, 30); i++) {
+            const rowStr = rawRows[i].join(" ").toLowerCase();
+            if ((rowStr.includes("data") && rowStr.includes("descri")) || (rowStr.includes("data") && rowStr.includes("montante"))) {
+              headerRowIndex = i;
+              break;
+            }
+          }
+
+          const headers = rawRows[headerRowIndex].map((h: any) => String(h || ""));
+          const jsonData = rawRows.slice(headerRowIndex + 1).map(row => {
+            const obj: Record<string, any> = {};
+            headers.forEach((h, idx) => {
+              obj[h] = row[idx];
+            });
+            return obj;
+          });
+
+          processBankData(jsonData);
         } catch (err) { console.error(err); setStatus("error"); }
       };
       reader.onerror = () => setStatus("error");
