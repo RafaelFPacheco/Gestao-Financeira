@@ -227,8 +227,9 @@ export async function getDashboardData() {
       id: `mkt-${m.id || Math.random()}`,
       description: `Gasto Ads: ${m.source}`,
       value: m.spend,
-      category: "Anúncios",
+      category: "Ads",
       transaction_type: "Despesa da Empresa",
+      paid_by: "Empresa",
       created_at: m.date
     }))
   ];
