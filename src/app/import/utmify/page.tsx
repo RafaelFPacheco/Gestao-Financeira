@@ -54,11 +54,21 @@ export default function UtmifyImportPage() {
     try {
       if (dateVal.includes("/")) {
         const parts = dateVal.split("/");
-        if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        if (parts.length === 3) {
+          // ensure year is full length
+          let year = parts[2];
+          if (year.length === 2) year = "20" + year;
+          // check if valid date
+          const d = new Date(`${year}-${parts[1]}-${parts[0]}`);
+          if (isNaN(d.getTime())) return null;
+          return `${year}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
       }
-      return new Date(dateVal).toISOString().split('T')[0];
+      const d = new Date(dateVal);
+      if (isNaN(d.getTime())) return null;
+      return d.toISOString().split('T')[0];
     } catch(e) {
-      return new Date().toISOString().split('T')[0];
+      return null;
     }
   }
 
@@ -71,9 +81,12 @@ export default function UtmifyImportPage() {
       const row: Record<string, string> = {};
       for (const [key, value] of Object.entries(rawRow)) row[normalizeKey(key)] = String(value);
 
-      let dateVal = findKey(row, ["date", "data", "dia", "reporting starts", "início", "day", "created_at"]);
-      if (!dateVal) dateVal = new Date().toISOString().split('T')[0];
-      dateVal = parseDate(dateVal);
+      let dateVal = findKey(row, ["date", "data", "reporting starts", "início", "day", "created_at"]);
+      if (!dateVal) return;
+      
+      const parsedD = parseDate(dateVal);
+      if (!parsedD) return;
+      dateVal = parsedD;
 
       const spendStr = findKey(row, ["spend", "gastos", "gasto", "despesas", "valor gasto", "amount spent", "cost", "custo", "importância gasta"]);
       const spend = parseFloat(cleanNumber(spendStr)) || 0;
