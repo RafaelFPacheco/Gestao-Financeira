@@ -206,7 +206,15 @@ export async function getDashboardData() {
 
   const exps = [
     ...rawExps,
-    ...marketingData.map((m: any) => ({
+    ...marketingData.filter((m: any) => {
+      // Prevent double counting if there are actual Bank ad expenses on this day
+      const mDate = new Date(m.date).toISOString().split('T')[0];
+      const hasBankAdExpense = rawExps.some((e: any) => 
+        (e.category === "Anúncios" || e.category === "Ads") && 
+        new Date(e.created_at).toISOString().split('T')[0] === mDate
+      );
+      return !hasBankAdExpense;
+    }).map((m: any) => ({
       id: `mkt-${m.id || Math.random()}`,
       description: `Gasto Ads: ${m.source}`,
       value: m.spend,
@@ -218,7 +226,13 @@ export async function getDashboardData() {
 
   const revs = [
     ...rawRevs,
-    ...marketingData.map(m => ({
+    ...marketingData.filter((m: any) => {
+      // Only include marketing revenue if we don't have actual revenues for this day
+      // (assuming they might import bank revenues eventually, but for now rely on Utmify)
+      const mDate = new Date(m.date).toISOString().split('T')[0];
+      const hasBankRevenue = rawRevs.some((r: any) => new Date(r.created_at).toISOString().split('T')[0] === mDate);
+      return !hasBankRevenue;
+    }).map(m => ({
       id: `mkt-${m.id || Math.random()}`,
       offer: m.source,
       value: m.revenue,
@@ -368,13 +382,109 @@ export async function editRevenue(id: string, updates: any) {
 
 export async function saveMarketingMetrics(data: any[]) {
   const supabase = await createClient();
-  const { error } = await supabase.from("marketing_metrics").insert(data);
   
-  if (error) {
-    console.error("Error saving marketing metrics:", error);
-    return { error: "Erro ao guardar as métricas de marketing." };
+  for (const row of data) {
+    const { data: existing } = await supabase
+      .from("marketing_metrics")
+      .select("id")
+      .eq("date", row.date)
+      .eq("source", row.source)
+      .single();
+
+    if (existing) {
+      await supabase.from("marketing_metrics").update({
+        spend: row.spend,
+        revenue: row.revenue
+      }).eq("id", existing.id);
+    } else {
+      await supabase.from("marketing_metrics").insert(row);
+    }
   }
 
   revalidatePath("/");
   return { success: true };
+}
+
+export async function saveBankTransactions(data: any[]) {
+  const supabase = await createClient();
+  
+  let inserted = 0;
+  for (const row of data) {
+    const { data: existing } = await supabase
+      .from("expenses")
+      .select("id")
+      .eq("description", row.description)
+      .eq("value", row.value)
+      .eq("created_at", row.created_at)
+      .single();
+
+    if (!existing) {
+      const { error } = await supabase.from("expenses").insert(row);
+      if (!error) inserted++;
+      else console.error("Error inserting bank tx:", error);
+    }
+  }
+  
+  revalidatePath("/");
+  return { success: true, count: inserted };
+}
+
+export async function getReconciliationData() {
+  const supabase = await createClient();
+
+  const [expensesRes, revenuesRes, marketingRes] = await Promise.all([
+    supabase.from("expenses").select("*").in("category", ["Anúncios", "Ads"]).order("created_at", { ascending: false }),
+    supabase.from("revenues").select("*").order("created_at", { ascending: false }), // Assuming some revenues from bank might exist
+    supabase.from("marketing_metrics").select("*").order("date", { ascending: false })
+  ]);
+
+  const bankAds = expensesRes.data || [];
+  const bankRevs = revenuesRes.data || [];
+  const utmifyAds = marketingRes.data || [];
+
+  const dateMap = new Map<string, {
+    date: string,
+    bankSpend: number,
+    bankRevenue: number,
+    utmifySpend: number,
+    utmifyRevenue: number,
+    details: {
+      bankTx: any[],
+      utmifyTx: any[]
+    }
+  }>();
+
+  const getOrCreate = (d: string) => {
+    if (!dateMap.has(d)) {
+      dateMap.set(d, { date: d, bankSpend: 0, bankRevenue: 0, utmifySpend: 0, utmifyRevenue: 0, details: { bankTx: [], utmifyTx: [] } });
+    }
+    return dateMap.get(d)!;
+  };
+
+  // Process Bank Ads
+  bankAds.forEach(tx => {
+    const d = new Date(tx.created_at).toISOString().split('T')[0];
+    const entry = getOrCreate(d);
+    entry.bankSpend += Number(tx.value);
+    entry.details.bankTx.push(tx);
+  });
+
+  // Process Bank Revenues (if any)
+  bankRevs.forEach(tx => {
+    const d = new Date(tx.created_at).toISOString().split('T')[0];
+    const entry = getOrCreate(d);
+    entry.bankRevenue += Number(tx.value);
+    entry.details.bankTx.push(tx);
+  });
+
+  // Process Utmify
+  utmifyAds.forEach(tx => {
+    const d = new Date(tx.date).toISOString().split('T')[0];
+    const entry = getOrCreate(d);
+    entry.utmifySpend += Number(tx.spend);
+    entry.utmifyRevenue += Number(tx.revenue);
+    entry.details.utmifyTx.push(tx);
+  });
+
+  return Array.from(dateMap.values()).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
