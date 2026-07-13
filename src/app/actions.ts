@@ -265,8 +265,8 @@ export async function getDashboardData() {
       year: { total: 0, chartData: [] as any[] },
     },
     goals: goals,
-    recentExpenses: exps.slice(0, 50),
-    recentRevenues: revs.slice(0, 50),
+    recentExpenses: exps.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 300),
+    recentRevenues: revs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 300),
     supplies,
     marketingData: combinedMarketingData
   };
