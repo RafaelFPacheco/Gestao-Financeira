@@ -9,7 +9,7 @@ import AdsSection from "@/components/AdsSection";
 import ExpenseLogTable from "@/components/ExpenseLogTable";
 import { getDashboardData } from "@/app/actions";
 import Link from "next/link";
-import { UploadCloud } from "lucide-react";
+import { UploadCloud, Building2, TrendingUp } from "lucide-react";
 
 export default async function Home() {
   const { revenues, expenses, goals, recentExpenses, recentRevenues, supplies, marketingData } = await getDashboardData();
@@ -86,6 +86,20 @@ export default async function Home() {
         {/* Bottom Section: Table Log */}
         <section>
           <ExpenseLogTable expenses={recentExpenses} revenues={recentRevenues} />
+        </section>
+        {/* Import Shortcuts Section */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12 mb-8">
+          <Link href="/import/bank" className="flex flex-col items-center justify-center p-8 glass border border-border hover:border-blue-500/50 rounded-2xl transition-all hover:-translate-y-1 group text-center">
+            <Building2 className="w-10 h-10 text-blue-500 mb-4 group-hover:scale-110 transition-transform" />
+            <h2 className="text-2xl font-bold text-foreground">Banco (Extrato)</h2>
+            <p className="text-sm text-muted-foreground mt-2">Clica aqui para meteres o Excel do teu Banco (Millennium)</p>
+          </Link>
+
+          <Link href="/import/utmify" className="flex flex-col items-center justify-center p-8 glass border border-border hover:border-primary/50 rounded-2xl transition-all hover:-translate-y-1 group text-center">
+            <TrendingUp className="w-10 h-10 text-primary mb-4 group-hover:scale-110 transition-transform" />
+            <h2 className="text-2xl font-bold text-foreground">Utmify / Ads</h2>
+            <p className="text-sm text-muted-foreground mt-2">Clica aqui para meteres os teus relatórios do Utmify</p>
+          </Link>
         </section>
       </div>
     </main>
