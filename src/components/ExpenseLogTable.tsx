@@ -34,6 +34,7 @@ export default function ExpenseLogTable({ expenses, revenues }: ExpenseLogTableP
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPartner, setFilterPartner] = useState("Todos");
   const [filterStatus, setFilterStatus] = useState("Todos");
+  const [filterCategory, setFilterCategory] = useState("Todas");
   
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ description: "", value: 0, frequency: "", category: "Outros", created_at: "" });
@@ -101,6 +102,7 @@ export default function ExpenseLogTable({ expenses, revenues }: ExpenseLogTableP
   const filteredExpenses = allTransactions.filter((expense) => {
     if (searchTerm && !expense.description?.toLowerCase().includes(searchTerm.toLowerCase())) return false;
     if (filterPartner !== "Todos" && expense.paid_by !== filterPartner) return false;
+    if (filterCategory !== "Todas" && expense.category !== filterCategory) return false;
     
     if (filterStatus !== "Todos") {
       const isPartnerOwes = expense.transaction_type === 'Despesa Pessoal (Sócio deve à Empresa)' && expense.paid_by !== 'Empresa';
@@ -145,6 +147,8 @@ export default function ExpenseLogTable({ expenses, revenues }: ExpenseLogTableP
     document.body.removeChild(link);
   };
 
+  const categories = Array.from(new Set(allTransactions.map(e => e.category).filter(Boolean))).sort() as string[];
+
   return (
     <div className="glass rounded-xl overflow-hidden">
       <div className="p-6 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card/40">
@@ -175,7 +179,23 @@ export default function ExpenseLogTable({ expenses, revenues }: ExpenseLogTableP
           />
         </div>
         
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Filter size={14} className="text-muted-foreground" />
+            </div>
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="bg-background/50 border border-border rounded-lg pl-8 pr-8 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 appearance-none cursor-pointer"
+            >
+              <option value="Todas">Todas as Categorias</option>
+              {categories.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Filter size={14} className="text-muted-foreground" />
