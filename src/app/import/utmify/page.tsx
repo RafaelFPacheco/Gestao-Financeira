@@ -15,7 +15,7 @@ type DailyMetric = {
 };
 
 export default function UtmifyImportPage() {
-  const [accountName, setAccountName] = useState<string>("Conta Principal");
+  const [accountName, setAccountName] = useState<string>("Elasticos");
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [parsedUtmify, setParsedUtmify] = useState<DailyMetric[]>([]);
