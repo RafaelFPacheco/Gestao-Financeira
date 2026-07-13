@@ -5,7 +5,7 @@ const sql = postgres('postgresql://postgres:9aY65r-DEdcmwV_@db.qqhlsdmnylycjglen
 });
 
 async function main() {
-  const data = await sql`SELECT tablename, rowsecurity FROM pg_tables WHERE tablename = 'marketing_metrics'`;
+  const data = await sql`SELECT id, created_at, description, value FROM revenues ORDER BY id DESC LIMIT 20`;
   console.log(JSON.stringify(data, null, 2));
   process.exit(0);
 }

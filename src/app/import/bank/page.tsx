@@ -94,16 +94,26 @@ export default function BankImportPage() {
       const upperDesc = desc.toUpperCase();
       
       // Ignorar gastos de Ads (Facebk)
-      if (upperDesc.includes("FACEBK") || upperDesc.includes("FACEBOOK")) return;
-      else if (upperDesc.includes("UTMIFY")) category = "Software";
+      if (upperDesc.includes("FACEBK") || upperDesc.includes("FACEBOOK") || upperDesc.includes("ADS")) return;
 
-      // Ignorar transferências para o Rafael Pacheco antes do dia 1 do mês atual
+      // Ignorar transferências antigas para o Rafael Pacheco
       if (upperDesc.includes("RAFAEL") && upperDesc.includes("PACHECO")) {
         const txDate = new Date(dateVal);
         const currentMonthStart = new Date();
         currentMonthStart.setDate(1);
         currentMonthStart.setHours(0, 0, 0, 0);
         if (txDate < currentMonthStart) return;
+      }
+
+      // Regras de Categorização
+      if (upperDesc.includes("R C R LDA") || upperDesc.includes("CONTABILISTA")) {
+        category = "Contabilista";
+      } else if (upperDesc.includes("IMPOSTO DO SELO") || upperDesc.includes("CUSTO DE SERVICO INTERNACIONAL") || upperDesc.includes("SEGURANCA SOCIAL") || upperDesc.includes("COM.MAN.CONTA")) {
+        category = "Impostos";
+      } else if (upperDesc.includes("UTMIFY") || upperDesc.includes("PROXY") || upperDesc.includes("CAPCUT") || upperDesc.includes("EASYPAY") || upperDesc.includes("INVOICE EXPRES")) {
+        category = "Software";
+      } else if (upperDesc.includes("RAFAEL PACHECO") || upperDesc.includes("GONCALO MIRANDA") || upperDesc.includes("GONÇALO MIRANDA") || upperDesc.includes("RODRIGO SEVERINO")) {
+        category = "Salários";
       }
 
       transactions.push({
