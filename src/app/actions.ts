@@ -380,7 +380,7 @@ export async function editRevenue(id: string, updates: any) {
   return { success: true };
 }
 
-export async function saveMarketingMetrics(data: any[]) {
+export async function saveMarketingMetrics(data: any[]): Promise<{success?: boolean, error?: string}> {
   const supabase = await createClient();
   
   for (const row of data) {
@@ -405,7 +405,7 @@ export async function saveMarketingMetrics(data: any[]) {
   return { success: true };
 }
 
-export async function saveBankTransactions(data: any[]) {
+export async function saveBankTransactions(data: any[]): Promise<{success?: boolean, count?: number, error?: string}> {
   const supabase = await createClient();
   
   let inserted = 0;
@@ -426,7 +426,7 @@ export async function saveBankTransactions(data: any[]) {
   }
   
   revalidatePath("/");
-  return { success: true, count: inserted };
+  return { success: true, count: inserted, error: undefined };
 }
 
 export async function getReconciliationData() {
