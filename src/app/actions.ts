@@ -177,16 +177,25 @@ export async function getDashboardData() {
   
   const combinedMarketingData = [
     ...marketingData,
-    ...rawExps.filter((e: any) => e.category === "Anúncios").map((e: any) => ({
+    ...rawExps.filter((e: any) => {
+      if (e.category !== "Anúncios") return false;
+      const eDate = new Date(e.created_at).toISOString().split('T')[0];
+      const hasUtmify = marketingData.some((m: any) => new Date(m.date).toISOString().split('T')[0] === eDate);
+      return !hasUtmify;
+    }).map((e: any) => ({
       id: e.id,
-      source: "Manual",
+      source: "Banco",
       spend: e.value,
       revenue: 0,
       date: e.created_at
     })),
-    ...rawRevs.map((r: any) => ({
+    ...rawRevs.filter((r: any) => {
+      const rDate = new Date(r.created_at).toISOString().split('T')[0];
+      const hasUtmify = marketingData.some((m: any) => new Date(m.date).toISOString().split('T')[0] === rDate);
+      return !hasUtmify;
+    }).map((r: any) => ({
       id: r.id,
-      source: "Manual",
+      source: "Banco",
       spend: 0,
       revenue: r.value,
       date: r.created_at
