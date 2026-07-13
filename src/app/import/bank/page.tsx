@@ -84,15 +84,27 @@ export default function BankImportPage() {
       const amountStr = findKey(row, ["montante", "valor", "amount", "importância"]);
       const amount = parseFloat(cleanNumber(amountStr)) || 0;
       if (amount === 0) return;
+      
+      // Ignorar ganhos/receitas do banco
+      if (amount > 0) return;
 
       let category = "Outros";
       let transaction_type = "Despesa da Empresa";
       
       const upperDesc = desc.toUpperCase();
-      if (upperDesc.includes("FACEBK") || upperDesc.includes("FACEBOOK")) category = "Anúncios";
+      
+      // Ignorar gastos de Ads (Facebk)
+      if (upperDesc.includes("FACEBK") || upperDesc.includes("FACEBOOK")) return;
       else if (upperDesc.includes("UTMIFY")) category = "Software";
 
-      if (amount > 0) transaction_type = "Receita / Faturamento";
+      // Ignorar transferências para o Rafael Pacheco antes do dia 1 do mês atual
+      if (upperDesc.includes("RAFAEL") && upperDesc.includes("PACHECO")) {
+        const txDate = new Date(dateVal);
+        const currentMonthStart = new Date();
+        currentMonthStart.setDate(1);
+        currentMonthStart.setHours(0, 0, 0, 0);
+        if (txDate < currentMonthStart) return;
+      }
 
       transactions.push({
         description: desc.trim(),
@@ -100,7 +112,7 @@ export default function BankImportPage() {
         frequency: "Único",
         category,
         paid_by: "Empresa",
-        transaction_type: amount > 0 ? "Receita / Faturamento" : "Despesa da Empresa",
+        transaction_type: "Despesa da Empresa",
         created_at: new Date(`${dateVal}T12:00:00Z`).toISOString()
       });
     });
